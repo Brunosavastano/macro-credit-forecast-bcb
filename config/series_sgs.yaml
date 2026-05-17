@@ -1,0 +1,37 @@
+series:
+  ipca:
+    code: 433
+    name: "IPCA mensal"
+    frequency: "M"
+    unit: "% m/m"
+    transform: "level_rate"
+
+  selic_meta:
+    code: 432
+    name: "Meta Selic definida pelo Copom"
+    frequency: "D"
+    unit: "% a.a."
+    monthly_conversion: "end_of_month"
+    transform: "level_rate"
+
+  spread_credito_total:
+    code: 20783
+    name: "Spread medio das operacoes de credito - Total"
+    frequency: "M"
+    unit: "p.p."
+    transform: "test_level_or_diff"
+
+  concessoes_credito_total:
+    code: 20631
+    name: "Concessoes de credito - Total"
+    frequency: "M"
+    unit: "R$ milhoes"
+    transform: "deflate_log_diff"
+
+  inadimplencia_total:
+    code: 21082
+    name: "Inadimplencia da carteira de credito - Total"
+    frequency: "M"
+    unit: "%"
+    transform: "test_level_or_diff"
+

@@ -1,0 +1,21 @@
+data:
+  start: "2011-03-01"
+  end: null
+
+model:
+  horizon: 12
+  maxlags: 6
+  robustness_maxlags: 12
+  criterion: "bic"
+  deterministic: "c"
+  vecm_det_order: 0
+
+backtest:
+  initial_window: 72
+  horizons: [1, 3, 6, 12]
+  expanding: true
+
+focus:
+  enabled: true
+  top: 5000
+
