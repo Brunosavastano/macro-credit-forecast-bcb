@@ -127,4 +127,3 @@ with left:
 with right:
     st.write("Auditoria de transformações")
     st.dataframe(transformations, use_container_width=True, hide_index=True)
-

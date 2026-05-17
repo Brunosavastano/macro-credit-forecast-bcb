@@ -86,4 +86,3 @@ def test_scorecard_flags_rejected_residual_whiteness() -> None:
     residual_status = scorecard.loc[scorecard["dimension"] == "Resíduos", "status"].iloc[0]
 
     assert residual_status == "fail"
-
