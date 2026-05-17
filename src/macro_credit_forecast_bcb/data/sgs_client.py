@@ -29,7 +29,22 @@ class SGSRequest:
 def _to_float(value: object) -> float:
     if value is None:
         return float("nan")
-    return float(str(value).replace(".", "").replace(",", "."))
+    text = str(value).strip()
+    if not text:
+        return float("nan")
+
+    if "," in text and "." in text:
+        if text.rfind(",") > text.rfind("."):
+            text = text.replace(".", "").replace(",", ".")
+        else:
+            text = text.replace(",", "")
+    elif "," in text:
+        text = text.replace(".", "").replace(",", ".")
+    elif text.count(".") > 1:
+        parts = text.split(".")
+        text = "".join(parts[:-1]) + "." + parts[-1]
+
+    return float(text)
 
 
 def _parse_sgs_payload(payload: list[dict[str, object]], name: str | None = None) -> pd.Series:

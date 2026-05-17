@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from app_utils import load_history, missing_artifacts_message
+from app_utils import apply_app_style, load_history, missing_artifacts_message
 from macro_credit_forecast_bcb.features.transformations import model_columns
 from macro_credit_forecast_bcb.models.model_selection import select_var_lag
 from macro_credit_forecast_bcb.models.var_model import fit_var
@@ -19,6 +19,7 @@ from macro_credit_forecast_bcb.viz.charts import label
 
 
 st.set_page_config(page_title="Credito e Transmissao", layout="wide")
+apply_app_style()
 st.title("Credito e Transmissao Monetaria")
 st.info(
     "As funcoes impulso-resposta abaixo sao reduzidas. Elas descrevem dinamica do VAR "
@@ -76,4 +77,3 @@ for lag in range(0, max_lag + 1):
         }
     )
 st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-

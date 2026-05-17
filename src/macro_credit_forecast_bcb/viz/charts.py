@@ -4,34 +4,16 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-
-VARIABLE_LABELS = {
-    "ipca": "IPCA mensal",
-    "ipca_12m": "IPCA acumulado em 12 meses",
-    "selic": "Selic meta",
-    "spread": "Spread medio de credito",
-    "dlog_concessoes_reais": "Crescimento real das concessoes",
-    "inadimplencia": "Inadimplencia",
-    "concessoes_reais": "Concessoes reais",
-}
-
-VARIABLE_UNITS = {
-    "ipca": "% m/m",
-    "ipca_12m": "% 12m",
-    "selic": "% a.a.",
-    "spread": "p.p.",
-    "dlog_concessoes_reais": "% m/m real",
-    "inadimplencia": "%",
-    "concessoes_reais": "R$ milhoes, precos constantes",
-}
+from macro_credit_forecast_bcb.viz.formatting import (
+    VARIABLE_DISPLAY,
+    format_table_for_display,
+    label,
+    tickformat,
+    unit,
+)
 
 
-def label(variable: str) -> str:
-    return VARIABLE_LABELS.get(variable, variable)
-
-
-def unit(variable: str) -> str:
-    return VARIABLE_UNITS.get(variable, "")
+VARIABLE_LABELS = {key: value.label for key, value in VARIABLE_DISPLAY.items()}
 
 
 def history_forecast_chart(
@@ -52,7 +34,8 @@ def history_forecast_chart(
                 y=hist[variable],
                 mode="lines",
                 name="Historico",
-                line=dict(color="#0f172a", width=2),
+                line=dict(color="#111827", width=2.25),
+                hovertemplate=f"%{{x|%Y-%m}}<br>{unit(variable)}: %{{y:{tickformat(variable)}}}<extra>Historico</extra>",
             )
         )
 
@@ -77,7 +60,7 @@ def history_forecast_chart(
                     y=fc[lower],
                     mode="lines",
                     fill="tonexty",
-                    fillcolor="rgba(37, 99, 235, 0.16)",
+                    fillcolor="rgba(37, 99, 235, 0.12)",
                     line=dict(width=0),
                     name=f"IC {interval}%",
                     hoverinfo="skip",
@@ -89,7 +72,8 @@ def history_forecast_chart(
                 y=fc["forecast"],
                 mode="lines+markers",
                 name="Forecast",
-                line=dict(color="#2563eb", width=3),
+                line=dict(color="#2563eb", width=2.75),
+                hovertemplate=f"%{{x|%Y-%m}}<br>{unit(variable)}: %{{y:{tickformat(variable)}}}<extra>Forecast</extra>",
             )
         )
 
@@ -98,8 +82,12 @@ def history_forecast_chart(
         xaxis_title="Data",
         yaxis_title=unit(variable),
         template="plotly_white",
+        font=dict(family="Inter, Segoe UI, sans-serif", color="#0f172a"),
+        hovermode="x unified",
+        yaxis=dict(tickformat=tickformat(variable), zerolinecolor="#e5e7eb", gridcolor="#eef2f7"),
+        xaxis=dict(gridcolor="#f1f5f9"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=30, r=20, t=70, b=35),
+        margin=dict(l=28, r=20, t=62, b=32),
     )
     return fig
 
@@ -116,7 +104,11 @@ def metrics_heatmap(metrics: pd.DataFrame, variable: str, metric: str = "rmse") 
         color_continuous_scale="Blues",
         title=f"{metric.upper()} por modelo e horizonte - {label(variable)}",
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=30, r=20, t=70, b=35))
+    fig.update_layout(
+        template="plotly_white",
+        font=dict(family="Inter, Segoe UI, sans-serif", color="#0f172a"),
+        margin=dict(l=30, r=20, t=70, b=35),
+    )
     return fig
 
 
@@ -130,7 +122,11 @@ def residual_correlation_chart(correlation: pd.DataFrame | dict) -> go.Figure:
         text_auto=".2f",
         title="Correlacao dos residuos",
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=30, r=20, t=70, b=35))
+    fig.update_layout(
+        template="plotly_white",
+        font=dict(family="Inter, Segoe UI, sans-serif", color="#0f172a"),
+        margin=dict(l=30, r=20, t=70, b=35),
+    )
     return fig
 
 
@@ -138,8 +134,7 @@ def forecast_table(forecast: pd.DataFrame) -> pd.DataFrame:
     if forecast.empty:
         return forecast
     table = forecast.copy()
-    table["date"] = pd.to_datetime(table["date"]).dt.date
-    return table[
+    table = table[
         [
             "date",
             "horizon",
@@ -152,4 +147,4 @@ def forecast_table(forecast: pd.DataFrame) -> pd.DataFrame:
             "upper_95",
         ]
     ]
-
+    return format_table_for_display(table)

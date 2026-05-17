@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from macro_credit_forecast_bcb.data.sgs_client import get_sgs_series
+from macro_credit_forecast_bcb.data.quality import build_data_quality_report
 from macro_credit_forecast_bcb.features.transformations import (
     build_model_dataset,
     validate_time_series_frame,
@@ -21,6 +22,7 @@ class DatasetBundle:
     raw_monthly: pd.DataFrame
     model_dataset: pd.DataFrame
     metadata: pd.DataFrame
+    quality_report: pd.DataFrame
 
 
 def monthly_conversion(
@@ -109,8 +111,14 @@ def build_monthly_dataset(
 ) -> DatasetBundle:
     raw_monthly, metadata = download_sgs_config(series_config, start=start, end=end)
     common = align_common_sample(raw_monthly, start)
+    quality_report = build_data_quality_report(common)
     model_dataset = build_model_dataset(common)
-    return DatasetBundle(raw_monthly=common, model_dataset=model_dataset, metadata=metadata)
+    return DatasetBundle(
+        raw_monthly=common,
+        model_dataset=model_dataset,
+        metadata=metadata,
+        quality_report=quality_report,
+    )
 
 
 def save_dataset_bundle(bundle: DatasetBundle, processed_dir: Path) -> None:
@@ -119,4 +127,3 @@ def save_dataset_bundle(bundle: DatasetBundle, processed_dir: Path) -> None:
     bundle.model_dataset.to_parquet(processed_dir / "monthly_macro_credit.parquet")
     bundle.metadata.to_csv(processed_dir / "series_metadata.csv", index=False)
     LOGGER.info("Saved monthly datasets to %s", processed_dir)
-

@@ -20,6 +20,9 @@ def load_history() -> pd.DataFrame:
         return pd.DataFrame()
     frame = pd.read_parquet(path)
     frame.index = pd.to_datetime(frame.index)
+    inferred_freq = pd.infer_freq(frame.index)
+    if inferred_freq:
+        frame = frame.asfreq(inferred_freq)
     return frame
 
 
@@ -37,6 +40,16 @@ def load_forecast() -> pd.DataFrame:
 def load_stationarity() -> pd.DataFrame:
     path = OUTPUTS / "stationarity_report.csv"
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
+
+
+@st.cache_data(show_spinner=False)
+def load_data_quality() -> pd.DataFrame:
+    path = OUTPUTS / "data_quality_report.csv"
+    frame = pd.read_csv(path) if path.exists() else pd.DataFrame()
+    for column in ["first_date", "last_date"]:
+        if column in frame.columns:
+            frame[column] = pd.to_datetime(frame[column], errors="coerce")
+    return frame
 
 
 @st.cache_data(show_spinner=False)
@@ -93,3 +106,81 @@ def dataframe_download(frame: pd.DataFrame, filename: str, label: str = "Downloa
         mime="text/csv",
     )
 
+
+def apply_app_style() -> None:
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            padding-top: 2.1rem;
+            padding-bottom: 3rem;
+            max-width: 1180px;
+        }
+        h1, h2, h3 {
+            letter-spacing: 0;
+        }
+        [data-testid="stMetric"] {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+        [data-testid="stMetricLabel"] {
+            color: #64748b;
+        }
+        [data-testid="stMetricValue"] {
+            color: #0f172a;
+            font-size: 1.55rem;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.28rem 0.68rem;
+            font-size: 0.82rem;
+            font-weight: 650;
+            border: 1px solid;
+        }
+        .status-ok {
+            color: #166534;
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+        .status-warning {
+            color: #92400e;
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+        .status-fail {
+            color: #991b1b;
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def quality_status(report: pd.DataFrame) -> str:
+    if report.empty:
+        return "missing"
+    if (report["status"] == "fail").any():
+        return "fail"
+    if (report["status"] == "warning").any():
+        return "warning"
+    return "ok"
+
+
+def render_quality_pill(status: str) -> None:
+    status_class = "status-ok" if status == "ok" else "status-warning" if status == "warning" else "status-fail"
+    label = {"ok": "Dados OK", "warning": "Dados com alertas", "fail": "Dados com falhas"}.get(
+        status,
+        "Dados nao validados",
+    )
+    st.markdown(
+        f'<span class="status-pill {status_class}">{label}</span>',
+        unsafe_allow_html=True,
+    )

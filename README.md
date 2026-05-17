@@ -25,11 +25,12 @@ Expectativas Focus via Olinda/OData sao baixadas em modo best-effort para IPCA e
 3. Concessoes nominais sao deflacionadas por indice acumulado de IPCA.
 4. A base VAR usa:
    `ipca`, `selic`, `spread`, `dlog_concessoes_reais`, `inadimplencia`.
-5. ADF e KPSS sao calculados para documentar estacionariedade.
-6. A defasagem do VAR e escolhida por BIC, com `maxlags=6` por padrao.
-7. Johansen e VECM sao tratados como candidatos, nao como obrigacao. O modelo base permanece VAR em transformacoes estacionarias quando ha mistura I(0)/I(1).
-8. Forecasts de 12 meses sao gerados com intervalos analiticos de 68% e 95%.
-9. Backtest expanding-window compara VAR contra random walk, AR(1), media movel de 12 meses e sazonal ingenuo.
+5. Checks de qualidade validam escala, missing values, duplicatas e saltos anormais antes da modelagem.
+6. ADF e KPSS sao calculados para documentar estacionariedade.
+7. A defasagem do VAR e escolhida por BIC, com `maxlags=6` por padrao.
+8. Johansen e VECM sao tratados como candidatos, nao como obrigacao. O modelo base permanece VAR em transformacoes estacionarias quando ha mistura I(0)/I(1).
+9. Forecasts de 12 meses sao gerados com intervalos analiticos de 68% e 95%.
+10. Backtest expanding-window compara VAR contra random walk, AR(1), media movel de 12 meses e sazonal ingenuo.
 
 As funcoes impulso-resposta exibidas no dashboard sao reduzidas. Elas nao constituem identificacao causal estrutural.
 
@@ -72,6 +73,7 @@ Parametros uteis:
 
 ```bash
 python -m macro_credit_forecast_bcb.pipeline.refresh --start 2011-03-01 --skip-focus
+python -m macro_credit_forecast_bcb.pipeline.refresh --allow-quality-warnings
 python -m macro_credit_forecast_bcb.pipeline.forecast --horizon 12
 python -m macro_credit_forecast_bcb.pipeline.backtest --initial-window 72
 ```
@@ -83,6 +85,7 @@ python -m macro_credit_forecast_bcb.pipeline.backtest --initial-window 72
 | `data/processed/monthly_macro_credit_raw.parquet` | Base mensal alinhada antes das transformacoes finais. |
 | `data/processed/monthly_macro_credit.parquet` | Base modelavel com variaveis transformadas. |
 | `data/processed/series_metadata.csv` | Metadados das series baixadas. |
+| `outputs/data_quality_report.csv` | Checks de escala, missing values, duplicatas e saltos anormais. |
 | `outputs/stationarity_report.csv` | ADF, KPSS e decisao documentada por variavel. |
 | `outputs/var_lag_selection.parquet` | Criterios de informacao por defasagem. |
 | `outputs/model_summary.json` | Resumo do modelo, diagnosticos e candidato VECM. |
@@ -118,6 +121,7 @@ Os testes cobrem parsing SGS, transformacoes, selecao de defasagens VAR e benchm
 - Intervalos usam a rotina analitica do `statsmodels`; bootstrap residual com muitas simulacoes e um aprimoramento natural.
 - IRFs sao reduzidas e nao identificam choques estruturais de politica monetaria.
 - APIs publicas podem falhar ou alterar esquemas; o pipeline explicita essas falhas em vez de substituir por dados ficticios.
+- Se as series SGS vierem em escala incompativel com as regras de plausibilidade, o refresh falha antes de salvar um modelo contaminado.
 
 ## Proximos passos naturais
 
@@ -126,4 +130,3 @@ Os testes cobrem parsing SGS, transformacoes, selecao de defasagens VAR e benchm
 - Incluir ajuste sazonal opcional para concessoes.
 - Publicar o dashboard em ambiente gerenciado.
 - Adicionar SVAR com restricoes explicitas se o objetivo passar a ser inferencia causal.
-

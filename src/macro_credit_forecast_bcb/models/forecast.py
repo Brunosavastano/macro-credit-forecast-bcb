@@ -42,7 +42,8 @@ def forecast_var(
                 }
             )
     output = pd.DataFrame(records)
-    return add_ipca_12m_forecast(output, history)
+    output = add_ipca_12m_forecast(output, history)
+    return add_concessoes_reais_forecast(output, history)
 
 
 def add_ipca_12m_forecast(forecast: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
@@ -74,3 +75,38 @@ def add_ipca_12m_forecast(forecast: pd.DataFrame, history: pd.DataFrame) -> pd.D
     ]
     return pd.concat([forecast, pd.DataFrame(rows)], ignore_index=True)
 
+
+def _rebuild_level_path(last_level: float, growth_pct: pd.Series) -> pd.Series:
+    levels = []
+    current = float(last_level)
+    for value in growth_pct.astype(float):
+        current *= float(np.exp(value / 100.0))
+        levels.append(current)
+    return pd.Series(levels, index=growth_pct.index)
+
+
+def add_concessoes_reais_forecast(forecast: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
+    if "concessoes_reais" not in history.columns:
+        return forecast
+    growth = forecast.loc[
+        forecast["variable"] == "dlog_concessoes_reais",
+        ["date", "horizon", "forecast", "lower_68", "upper_68", "lower_95", "upper_95", "model"],
+    ].sort_values("date")
+    if growth.empty:
+        return forecast
+
+    last_level = float(history["concessoes_reais"].dropna().iloc[-1])
+    indexed = growth.set_index("date")
+    rebuilt = pd.DataFrame(
+        {
+            "horizon": indexed["horizon"],
+            "variable": "concessoes_reais",
+            "forecast": _rebuild_level_path(last_level, indexed["forecast"]),
+            "lower_68": _rebuild_level_path(last_level, indexed["lower_68"]),
+            "upper_68": _rebuild_level_path(last_level, indexed["upper_68"]),
+            "lower_95": _rebuild_level_path(last_level, indexed["lower_95"]),
+            "upper_95": _rebuild_level_path(last_level, indexed["upper_95"]),
+            "model": indexed["model"],
+        }
+    ).reset_index(names="date")
+    return pd.concat([forecast, rebuilt], ignore_index=True)

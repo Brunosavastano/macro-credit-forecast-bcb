@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from macro_credit_forecast_bcb.data.quality import summarize_quality_report
 from macro_credit_forecast_bcb.features.transformations import model_columns
 from macro_credit_forecast_bcb.models.forecast import forecast_var
 from macro_credit_forecast_bcb.models.model_selection import information_criteria_to_records, select_var_lag
@@ -73,8 +74,11 @@ def main() -> None:
 
     selection = select_var_lag(data, maxlags=maxlags, criterion=criterion)
     result = fit_var(data, int(selection["selected_lag"]))
-    forecast = forecast_var(result, data, steps=horizon)
+    forecast_history_columns = variables + [column for column in ["concessoes_reais"] if column in frame.columns]
+    forecast = forecast_var(result, frame[forecast_history_columns].dropna(), steps=horizon)
     diagnostics = var_diagnostics(result)
+    quality_path = OUTPUTS_DIR / "data_quality_report.csv"
+    quality_report = pd.read_csv(quality_path) if quality_path.exists() else pd.DataFrame()
 
     k_ar_diff = max(int(selection["selected_lag"]) - 1, 1)
     vecm_candidates = [col for col in ["selic", "spread", "concessoes_reais", "inadimplencia"] if col in frame.columns]
@@ -102,6 +106,7 @@ def main() -> None:
         "forecast_horizon": horizon,
         "information_criteria": information_criteria_to_records(selection),
         "diagnostics": diagnostics,
+        "data_quality": summarize_quality_report(quality_report),
         "vecm_candidate": vecm_rank,
         "methodological_note": (
             "VECM is treated as a candidate only when integration and Johansen evidence justify it; "
