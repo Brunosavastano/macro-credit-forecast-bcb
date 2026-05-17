@@ -57,6 +57,7 @@ Com `make` disponível:
 make refresh
 make forecast
 make backtest
+make audit
 make app
 ```
 
@@ -66,6 +67,7 @@ Sem `make`:
 python -m macro_credit_forecast_bcb.pipeline.refresh
 python -m macro_credit_forecast_bcb.pipeline.forecast
 python -m macro_credit_forecast_bcb.pipeline.backtest
+python -m macro_credit_forecast_bcb.pipeline.audit
 streamlit run app/streamlit_app.py
 ```
 
@@ -93,6 +95,10 @@ python -m macro_credit_forecast_bcb.pipeline.backtest --initial-window 72
 | `data/forecasts/forecast_12m.parquet` | Forecast pontual e intervalos. |
 | `outputs/backtest_records.parquet` | Previsões fora da amostra por origem. |
 | `outputs/backtest_metrics.parquet` | MAE, RMSE, sMAPE e directional accuracy. |
+| `outputs/econometric_audit.json` | Scorecard executivo da auditoria econométrica. |
+| `outputs/econometric_audit_metrics.parquet` | MAE, RMSE, sMAPE, MASE, Theil U e ranking por horizonte. |
+| `outputs/interval_coverage.parquet` | Cobertura e largura média dos intervalos do VAR no backtest. |
+| `outputs/model_comparison_tests.parquet` | Testes Diebold-Mariano entre VAR e benchmarks. |
 
 ## Dashboard
 
@@ -101,6 +107,7 @@ O Streamlit contém:
 - Executive Dashboard;
 - Forecast Explorer;
 - Econometric Diagnostics;
+- Econometric Audit;
 - Backtest;
 - Crédito e Transmissão Monetária.
 

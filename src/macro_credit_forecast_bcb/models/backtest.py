@@ -55,6 +55,7 @@ def rolling_backtest(
                         (var_forecast["variable"] == variable) & (var_forecast["horizon"] == horizon)
                     ]
                     if not match.empty:
+                        row = match.iloc[0]
                         records.append(
                             {
                                 "origin": origin,
@@ -63,7 +64,11 @@ def rolling_backtest(
                                 "variable": variable,
                                 "horizon": horizon,
                                 "actual": actual,
-                                "forecast": float(match["forecast"].iloc[0]),
+                                "forecast": float(row["forecast"]),
+                                "lower_68": float(row["lower_68"]),
+                                "upper_68": float(row["upper_68"]),
+                                "lower_95": float(row["lower_95"]),
+                                "upper_95": float(row["upper_95"]),
                             }
                         )
 
@@ -78,9 +83,12 @@ def rolling_backtest(
                             "horizon": horizon,
                             "actual": actual,
                             "forecast": float(values[horizon - 1]),
+                            "lower_68": pd.NA,
+                            "upper_68": pd.NA,
+                            "lower_95": pd.NA,
+                            "upper_95": pd.NA,
                         }
                     )
 
     record_frame = pd.DataFrame(records)
     return record_frame, error_metrics(record_frame)
-

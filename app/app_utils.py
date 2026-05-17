@@ -59,6 +59,21 @@ def load_metrics() -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
+def load_audit_summary() -> dict:
+    path = OUTPUTS / "econometric_audit.json"
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+@st.cache_data(show_spinner=False)
+def load_audit_table(filename: str) -> pd.DataFrame:
+    path = OUTPUTS / filename
+    return pd.read_parquet(path) if path.exists() else pd.DataFrame()
+
+
+@st.cache_data(show_spinner=False)
 def load_model_summary() -> dict:
     path = OUTPUTS / "model_summary.json"
     if not path.exists():
@@ -180,6 +195,16 @@ def render_quality_pill(status: str) -> None:
         status,
         "Dados não validados",
     )
+    st.markdown(
+        f'<span class="status-pill {status_class}">{label}</span>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_status_pill(status: str) -> None:
+    normalized = {"pass": "ok", "ok": "ok", "warning": "warning", "fail": "fail"}.get(status, "warning")
+    status_class = "status-ok" if normalized == "ok" else "status-warning" if normalized == "warning" else "status-fail"
+    label = {"pass": "Pass", "ok": "OK", "warning": "Warning", "fail": "Fail"}.get(status, status.title())
     st.markdown(
         f'<span class="status-pill {status_class}">{label}</span>',
         unsafe_allow_html=True,
