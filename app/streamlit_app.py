@@ -21,6 +21,7 @@ from app_utils import (
     render_quality_pill,
 )
 from macro_credit_forecast_bcb.viz.charts import history_forecast_chart, label, unit
+from macro_credit_forecast_bcb.viz.formatting import format_value
 from macro_credit_forecast_bcb.viz.tables import latest_values_table
 
 
@@ -58,7 +59,19 @@ with note_col:
     st.caption("Os checks validam escala, missing values, duplicatas e saltos anormais antes da modelagem.")
 
 st.subheader("Resumo executivo")
-table = latest_values_table(history, forecast, horizon=12, formatted=True)
+try:
+    table = latest_values_table(history, forecast, horizon=12, formatted=True)
+except TypeError as exc:
+    if "formatted" not in str(exc):
+        raise
+    table = latest_values_table(history, forecast, horizon=12)
+    executive_variables = ["ipca", "ipca_12m", "selic", "spread", "concessoes_reais", "inadimplencia"]
+    for column in ["Último observado", "Forecast h=12"]:
+        if column in table.columns:
+            table[column] = [
+                format_value(variable, value)
+                for variable, value in zip(executive_variables, table[column], strict=False)
+            ]
 st.dataframe(
     table,
     use_container_width=True,

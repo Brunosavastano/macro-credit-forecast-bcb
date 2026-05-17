@@ -13,10 +13,17 @@ FORECASTS = ROOT / "data" / "forecasts"
 OUTPUTS = ROOT / "outputs"
 
 
-@st.cache_data(show_spinner=False)
-def load_history() -> pd.DataFrame:
-    path = PROCESSED / "monthly_macro_credit.parquet"
+def _file_signature(path: Path) -> tuple[int, int] | None:
     if not path.exists():
+        return None
+    stat = path.stat()
+    return stat.st_mtime_ns, stat.st_size
+
+
+@st.cache_data(show_spinner=False)
+def _read_history(path: str, signature: tuple[int, int] | None) -> pd.DataFrame:
+    del signature
+    if not Path(path).exists():
         return pd.DataFrame()
     frame = pd.read_parquet(path)
     frame.index = pd.to_datetime(frame.index)
@@ -26,68 +33,92 @@ def load_history() -> pd.DataFrame:
     return frame
 
 
+def load_history() -> pd.DataFrame:
+    path = PROCESSED / "monthly_macro_credit.parquet"
+    return _read_history(str(path), _file_signature(path))
+
+
 @st.cache_data(show_spinner=False)
-def load_forecast() -> pd.DataFrame:
-    path = FORECASTS / "forecast_12m.parquet"
-    if not path.exists():
+def _read_forecast(path: str, signature: tuple[int, int] | None) -> pd.DataFrame:
+    del signature
+    if not Path(path).exists():
         return pd.DataFrame()
     frame = pd.read_parquet(path)
     frame["date"] = pd.to_datetime(frame["date"])
     return frame
 
 
+def load_forecast() -> pd.DataFrame:
+    path = FORECASTS / "forecast_12m.parquet"
+    return _read_forecast(str(path), _file_signature(path))
+
+
 @st.cache_data(show_spinner=False)
+def _read_csv(path: str, signature: tuple[int, int] | None) -> pd.DataFrame:
+    del signature
+    return pd.read_csv(path) if Path(path).exists() else pd.DataFrame()
+
+
 def load_stationarity() -> pd.DataFrame:
     path = OUTPUTS / "stationarity_report.csv"
-    return pd.read_csv(path) if path.exists() else pd.DataFrame()
+    return _read_csv(str(path), _file_signature(path))
 
 
 @st.cache_data(show_spinner=False)
-def load_data_quality() -> pd.DataFrame:
-    path = OUTPUTS / "data_quality_report.csv"
-    frame = pd.read_csv(path) if path.exists() else pd.DataFrame()
+def _read_data_quality(path: str, signature: tuple[int, int] | None) -> pd.DataFrame:
+    del signature
+    frame = pd.read_csv(path) if Path(path).exists() else pd.DataFrame()
     for column in ["first_date", "last_date"]:
         if column in frame.columns:
             frame[column] = pd.to_datetime(frame[column], errors="coerce")
     return frame
 
 
+def load_data_quality() -> pd.DataFrame:
+    path = OUTPUTS / "data_quality_report.csv"
+    return _read_data_quality(str(path), _file_signature(path))
+
+
 @st.cache_data(show_spinner=False)
+def _read_parquet(path: str, signature: tuple[int, int] | None) -> pd.DataFrame:
+    del signature
+    return pd.read_parquet(path) if Path(path).exists() else pd.DataFrame()
+
+
 def load_metrics() -> pd.DataFrame:
     path = OUTPUTS / "backtest_metrics.parquet"
-    return pd.read_parquet(path) if path.exists() else pd.DataFrame()
+    return _read_parquet(str(path), _file_signature(path))
 
 
 @st.cache_data(show_spinner=False)
+def _read_json(path: str, signature: tuple[int, int] | None) -> dict:
+    del signature
+    if not Path(path).exists():
+        return {}
+    with Path(path).open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def load_audit_summary() -> dict:
     path = OUTPUTS / "econometric_audit.json"
-    if not path.exists():
-        return {}
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
+    return _read_json(str(path), _file_signature(path))
 
 
-@st.cache_data(show_spinner=False)
 def load_audit_table(filename: str) -> pd.DataFrame:
     path = OUTPUTS / filename
-    return pd.read_parquet(path) if path.exists() else pd.DataFrame()
+    return _read_parquet(str(path), _file_signature(path))
 
 
-@st.cache_data(show_spinner=False)
 def load_model_summary() -> dict:
     path = OUTPUTS / "model_summary.json"
-    if not path.exists():
-        return {}
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
+    return _read_json(str(path), _file_signature(path))
 
 
-@st.cache_data(show_spinner=False)
 def load_diagnostics() -> dict:
     path = OUTPUTS / "diagnostics.parquet"
-    if not path.exists():
+    frame = _read_parquet(str(path), _file_signature(path))
+    if frame.empty:
         return {}
-    frame = pd.read_parquet(path)
     return {row["metric"]: json.loads(row["value"]) for _, row in frame.iterrows()}
 
 
