@@ -25,7 +25,7 @@ if metrics.empty:
 
 variable_options = [v for v in VARIABLE_LABELS if v in metrics["variable"].unique()]
 variable = st.selectbox("Indicador", variable_options, format_func=label)
-metric = st.selectbox("Metrica", ["rmse", "mae", "smape", "directional_accuracy"])
+metric = st.selectbox("Métrica", ["rmse", "mae", "smape", "directional_accuracy"])
 
 st.plotly_chart(metrics_heatmap(metrics, variable, metric=metric), use_container_width=True)
 

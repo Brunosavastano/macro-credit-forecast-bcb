@@ -16,22 +16,21 @@ series:
 
   spread_credito_total:
     code: 20783
-    name: "Spread medio das operacoes de credito - Total"
+    name: "Spread médio das operações de crédito - Total"
     frequency: "M"
     unit: "p.p."
     transform: "test_level_or_diff"
 
   concessoes_credito_total:
     code: 20631
-    name: "Concessoes de credito - Total"
+    name: "Concessões de crédito - Total"
     frequency: "M"
-    unit: "R$ milhoes"
+    unit: "R$ milhões"
     transform: "deflate_log_diff"
 
   inadimplencia_total:
     code: 21082
-    name: "Inadimplencia da carteira de credito - Total"
+    name: "Inadimplência da carteira de crédito - Total"
     frequency: "M"
     unit: "%"
     transform: "test_level_or_diff"
-

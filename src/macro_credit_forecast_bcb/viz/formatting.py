@@ -21,18 +21,18 @@ VARIABLE_DISPLAY: dict[str, VariableDisplay] = {
     "ipca": VariableDisplay("IPCA mensal", "% m/m", decimals=2, tickformat=".2f", suffix="%"),
     "ipca_12m": VariableDisplay("IPCA acumulado em 12 meses", "% 12m", decimals=2, tickformat=".2f", suffix="%"),
     "selic": VariableDisplay("Selic meta", "% a.a.", decimals=2, tickformat=".2f", suffix="%"),
-    "spread": VariableDisplay("Spread medio de credito", "p.p.", decimals=2, tickformat=".2f", suffix=" p.p."),
+    "spread": VariableDisplay("Spread médio de crédito", "p.p.", decimals=2, tickformat=".2f", suffix=" p.p."),
     "dlog_concessoes_reais": VariableDisplay(
-        "Crescimento real das concessoes",
+        "Crescimento real das concessões",
         "% m/m",
         decimals=2,
         tickformat=".2f",
         suffix="%",
     ),
-    "inadimplencia": VariableDisplay("Inadimplencia", "%", decimals=2, tickformat=".2f", suffix="%"),
+    "inadimplencia": VariableDisplay("Inadimplência", "%", decimals=2, tickformat=".2f", suffix="%"),
     "concessoes_reais": VariableDisplay(
-        "Concessoes reais",
-        "R$ milhoes, precos constantes",
+        "Concessões reais",
+        "R$ milhões, preços constantes",
         decimals=0,
         tickformat=",.0f",
         prefix="R$ ",
@@ -89,4 +89,3 @@ def format_table_for_display(frame: pd.DataFrame, variable_column: str = "variab
         elif np.issubdtype(table[column].dtype, np.number):
             table[column] = table[column].map(lambda value: format_metric(value, 3))
     return table
-

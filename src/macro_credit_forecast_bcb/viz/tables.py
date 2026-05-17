@@ -28,7 +28,7 @@ def latest_values_table(
             {
                 "Indicador": label(variable),
                 "Unidade": unit(variable),
-                "Ultimo observado": latest_display,
+                "Último observado": latest_display,
                 f"Forecast h={horizon}": forecast_display,
             }
         )

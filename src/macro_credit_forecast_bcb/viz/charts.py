@@ -25,7 +25,7 @@ def history_forecast_chart(
     title: str | None = None,
 ) -> go.Figure:
     fig = go.Figure()
-    title = title or f"{label(variable)}: historico e forecast"
+    title = title or f"{label(variable)}: histórico e forecast"
     hist = history[[variable]].dropna() if variable in history.columns else pd.DataFrame()
     if not hist.empty:
         fig.add_trace(
@@ -33,9 +33,9 @@ def history_forecast_chart(
                 x=hist.index,
                 y=hist[variable],
                 mode="lines",
-                name="Historico",
+                name="Histórico",
                 line=dict(color="#111827", width=2.25),
-                hovertemplate=f"%{{x|%Y-%m}}<br>{unit(variable)}: %{{y:{tickformat(variable)}}}<extra>Historico</extra>",
+                hovertemplate=f"%{{x|%Y-%m}}<br>{unit(variable)}: %{{y:{tickformat(variable)}}}<extra>Histórico</extra>",
             )
         )
 
@@ -95,7 +95,7 @@ def history_forecast_chart(
 def metrics_heatmap(metrics: pd.DataFrame, variable: str, metric: str = "rmse") -> go.Figure:
     subset = metrics.loc[metrics["variable"] == variable]
     if subset.empty:
-        return go.Figure().update_layout(title=f"Sem metricas para {label(variable)}")
+        return go.Figure().update_layout(title=f"Sem métricas para {label(variable)}")
     pivot = subset.pivot_table(index="model", columns="horizon", values=metric, aggfunc="mean")
     fig = px.imshow(
         pivot,
@@ -120,7 +120,7 @@ def residual_correlation_chart(correlation: pd.DataFrame | dict) -> go.Figure:
         zmax=1,
         color_continuous_scale="RdBu",
         text_auto=".2f",
-        title="Correlacao dos residuos",
+        title="Correlação dos resíduos",
     )
     fig.update_layout(
         template="plotly_white",

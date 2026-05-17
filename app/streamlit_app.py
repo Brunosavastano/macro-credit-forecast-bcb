@@ -28,7 +28,7 @@ st.set_page_config(page_title="Macro Credit Forecast BCB", layout="wide")
 apply_app_style()
 
 st.title("Macro Credit Forecast BCB")
-st.caption("Forecast mensal de IPCA, Selic, spread, concessoes reais e inadimplencia com dados BCB.")
+st.caption("Forecast mensal de IPCA, Selic, spread, concessões reais e inadimplência com dados BCB.")
 
 history = load_history()
 forecast = load_forecast()
@@ -39,7 +39,7 @@ if history.empty or forecast.empty:
     missing_artifacts_message()
     st.stop()
 
-model_name = summary.get("model_selected", "Modelo ainda nao identificado")
+model_name = summary.get("model_selected", "Modelo ainda não identificado")
 sample_start = summary.get("sample_start", "")
 sample_end = summary.get("sample_end", "")
 quality_summary = summary.get("data_quality", {})
@@ -66,7 +66,7 @@ st.dataframe(
     column_config={
         "Indicador": st.column_config.TextColumn("Indicador", width="medium"),
         "Unidade": st.column_config.TextColumn("Unidade", width="medium"),
-        "Ultimo observado": st.column_config.TextColumn("Ultimo observado", width="small"),
+        "Último observado": st.column_config.TextColumn("Último observado", width="small"),
         "Forecast h=12": st.column_config.TextColumn("Forecast h=12", width="small"),
     },
 )
@@ -74,7 +74,7 @@ dataframe_download(table, "executive_summary.csv")
 
 with st.expander("Qualidade dos dados", expanded=False):
     if quality.empty:
-        st.info("Relatorio de qualidade ainda nao gerado.")
+        st.info("Relatório de qualidade ainda não gerado.")
     else:
         display_quality = quality.copy()
         for column in ["first_date", "last_date"]:
@@ -86,16 +86,16 @@ with st.expander("Qualidade dos dados", expanded=False):
             use_container_width=True,
             hide_index=True,
             column_config={
-                "variable": st.column_config.TextColumn("Variavel"),
+                "variable": st.column_config.TextColumn("Variável"),
                 "status": st.column_config.TextColumn("Status"),
                 "min": st.column_config.NumberColumn("Min", format="%.3f"),
                 "max": st.column_config.NumberColumn("Max", format="%.3f"),
-                "latest_value": st.column_config.NumberColumn("Ultimo", format="%.3f"),
+                "latest_value": st.column_config.NumberColumn("Último", format="%.3f"),
             },
         )
 
-st.subheader("Trajetorias principais")
-tabs = st.tabs(["IPCA", "Selic", "Spread", "Credito", "Inadimplencia"])
+st.subheader("Trajetórias principais")
+tabs = st.tabs(["IPCA", "Selic", "Spread", "Crédito", "Inadimplência"])
 with tabs[0]:
     st.plotly_chart(history_forecast_chart(history, forecast, "ipca"), use_container_width=True)
     if "ipca_12m" in forecast["variable"].unique():
@@ -118,8 +118,8 @@ with tabs[4]:
     st.plotly_chart(history_forecast_chart(history, forecast, "inadimplencia"), use_container_width=True)
 
 st.info(
-    "As projecoes sao quantitativas e condicionais ao modelo. IRFs no app sao reduzidos, "
-    "sem identificacao causal estrutural."
+    "As projeções são quantitativas e condicionais ao modelo. IRFs no app são reduzidos, "
+    "sem identificação causal estrutural."
 )
 
 with st.expander("Unidades"):

@@ -18,12 +18,12 @@ from macro_credit_forecast_bcb.models.var_model import fit_var
 from macro_credit_forecast_bcb.viz.charts import label
 
 
-st.set_page_config(page_title="Credito e Transmissao", layout="wide")
+st.set_page_config(page_title="Crédito e Transmissão", layout="wide")
 apply_app_style()
-st.title("Credito e Transmissao Monetaria")
+st.title("Crédito e Transmissão Monetária")
 st.info(
-    "As funcoes impulso-resposta abaixo sao reduzidas. Elas descrevem dinamica do VAR "
-    "e nao devem ser interpretadas como causalidade estrutural."
+    "As funções impulso-resposta abaixo são reduzidas. Elas descrevem dinâmica do VAR "
+    "e não devem ser interpretadas como causalidade estrutural."
 )
 
 history = load_history()
@@ -55,16 +55,16 @@ try:
         fig.add_trace(go.Scatter(x=periods, y=values, mode="lines+markers", name=label(response)))
     fig.update_layout(
         title=f"Resposta a choque em {label(shock)}",
-        xaxis_title="Meses apos o choque",
+        xaxis_title="Meses após o choque",
         yaxis_title="Resposta",
         template="plotly_white",
         margin=dict(l=30, r=20, t=70, b=35),
     )
     st.plotly_chart(fig, use_container_width=True)
 except Exception as exc:
-    st.error(f"Nao foi possivel estimar IRF: {exc}")
+    st.error(f"Não foi possível estimar IRF: {exc}")
 
-st.subheader("Correlacao defasada simples")
+st.subheader("Correlação defasada simples")
 max_lag = st.slider("Defasagem maxima", 1, 12, 6)
 rows = []
 for lag in range(0, max_lag + 1):

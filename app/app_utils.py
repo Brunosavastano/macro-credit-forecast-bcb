@@ -88,7 +88,7 @@ def add_src_to_path() -> None:
 
 
 def missing_artifacts_message() -> None:
-    st.warning("Os artefatos do pipeline ainda nao foram gerados neste workspace.")
+    st.warning("Os artefatos do pipeline ainda não foram gerados neste workspace.")
     st.code(
         "python -m pip install -e .\n"
         "python -m macro_credit_forecast_bcb.pipeline.refresh\n"
@@ -178,7 +178,7 @@ def render_quality_pill(status: str) -> None:
     status_class = "status-ok" if status == "ok" else "status-warning" if status == "warning" else "status-fail"
     label = {"ok": "Dados OK", "warning": "Dados com alertas", "fail": "Dados com falhas"}.get(
         status,
-        "Dados nao validados",
+        "Dados não validados",
     )
     st.markdown(
         f'<span class="status-pill {status_class}">{label}</span>',

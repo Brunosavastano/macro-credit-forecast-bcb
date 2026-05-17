@@ -46,7 +46,7 @@ cols[3].metric("Fim", str(summary.get("sample_end", ""))[:10])
 st.subheader("Qualidade dos dados")
 render_quality_pill(quality_status(quality))
 if quality.empty:
-    st.info("Relatorio de qualidade nao encontrado.")
+    st.info("Relatório de qualidade não encontrado.")
 else:
     quality_display = quality.copy()
     for column in ["first_date", "last_date"]:
@@ -58,19 +58,19 @@ else:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "variable": st.column_config.TextColumn("Variavel"),
+            "variable": st.column_config.TextColumn("Variável"),
             "status": st.column_config.TextColumn("Status"),
             "missing_values": st.column_config.NumberColumn("Missing", format="%d"),
             "duplicate_dates": st.column_config.NumberColumn("Duplicatas", format="%d"),
             "min": st.column_config.NumberColumn("Min", format="%.3f"),
             "max": st.column_config.NumberColumn("Max", format="%.3f"),
-            "latest_value": st.column_config.NumberColumn("Ultimo", format="%.3f"),
+            "latest_value": st.column_config.NumberColumn("Último", format="%.3f"),
         },
     )
 
 st.subheader("Testes ADF/KPSS")
 if stationarity.empty:
-    st.info("Relatorio de estacionariedade nao encontrado.")
+    st.info("Relatório de estacionariedade não encontrado.")
 else:
     st.dataframe(
         stationarity,
@@ -82,10 +82,10 @@ else:
         },
     )
 
-st.subheader("Selecao de defasagens")
+st.subheader("Seleção de defasagens")
 ic = pd.DataFrame(summary.get("information_criteria", []))
 if ic.empty:
-    st.info("Tabela de criterios de informacao nao encontrada.")
+    st.info("Tabela de critérios de informação não encontrada.")
 else:
     st.dataframe(
         ic,
@@ -101,7 +101,7 @@ else:
 
 st.subheader("Diagnosticos do VAR")
 diag_cols = st.columns(4)
-diag_cols[0].metric("Estavel", str(diagnostics.get("is_stable", "")))
+diag_cols[0].metric("Estável", str(diagnostics.get("is_stable", "")))
 diag_cols[1].metric("Lag", diagnostics.get("lag_order", ""))
 diag_cols[2].metric("BIC", round(float(diagnostics.get("bic", 0)), 3) if diagnostics.get("bic") is not None else "")
 diag_cols[3].metric("Menor raiz abs.", round(float(diagnostics.get("roots_abs_min", 0)), 3) if diagnostics.get("roots_abs_min") is not None else "")
@@ -113,6 +113,6 @@ st.subheader("VECM candidato")
 st.json(summary.get("vecm_candidate", {}))
 
 st.info(
-    "A decisao VAR/VECM deve seguir os testes de integracao, Johansen e diagnosticos. "
-    "O app nao forca VECM por estetica."
+    "A decisão VAR/VECM deve seguir os testes de integração, Johansen e diagnósticos. "
+    "O app não força VECM por estética."
 )
