@@ -108,7 +108,8 @@ def missing_artifacts_message() -> None:
         "python -m pip install -e .\n"
         "python -m macro_credit_forecast_bcb.pipeline.refresh\n"
         "python -m macro_credit_forecast_bcb.pipeline.forecast\n"
-        "python -m macro_credit_forecast_bcb.pipeline.backtest",
+        "python -m macro_credit_forecast_bcb.pipeline.backtest\n"
+        "python -m macro_credit_forecast_bcb.pipeline.audit",
         language="bash",
     )
 

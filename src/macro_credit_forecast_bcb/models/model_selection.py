@@ -18,15 +18,19 @@ def select_var_lag(
     *,
     maxlags: int = 6,
     criterion: str = "bic",
+    exog: pd.DataFrame | None = None,
 ) -> dict[str, object]:
     """Select VAR lag by fitting feasible lag orders and comparing ICs."""
     data = frame.dropna().astype(float)
     if data.shape[0] < 20:
         raise ValueError("At least 20 observations are required for VAR lag selection")
+    exog_data = None
+    if exog is not None:
+        exog_data = exog.loc[data.index].astype(float)
 
     maxlags = feasible_maxlags(data, maxlags)
     rows: list[dict[str, float | int]] = []
-    model = VAR(data)
+    model = VAR(data, exog=exog_data)
     for lag in range(1, maxlags + 1):
         try:
             result = model.fit(lag)
@@ -68,4 +72,3 @@ def information_criteria_to_records(selection: dict[str, object]) -> list[dict[s
     if isinstance(table, pd.DataFrame):
         return table.replace({np.nan: None}).to_dict(orient="records")
     return []
-

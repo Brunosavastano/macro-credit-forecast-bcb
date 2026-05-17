@@ -8,11 +8,12 @@ from statsmodels.tsa.api import VAR
 from statsmodels.tsa.vector_ar.var_model import VARResults
 
 
-def fit_var(frame: pd.DataFrame, lag: int) -> VARResults:
+def fit_var(frame: pd.DataFrame, lag: int, *, exog: pd.DataFrame | None = None) -> VARResults:
     data = frame.dropna().astype(float)
     if lag < 1:
         raise ValueError("VAR lag must be at least 1")
-    return VAR(data).fit(lag)
+    exog_data = exog.loc[data.index].astype(float) if exog is not None else None
+    return VAR(data, exog=exog_data).fit(lag)
 
 
 def _test_result_payload(result: Any) -> dict[str, object]:
@@ -49,4 +50,3 @@ def var_diagnostics(result: VARResults, *, max_whiteness_lag: int = 12) -> dict[
     except Exception as exc:
         diagnostics["normality_error"] = str(exc)
     return diagnostics
-

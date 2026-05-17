@@ -31,6 +31,8 @@ Expectativas Focus via Olinda/OData são baixadas em modo best-effort para IPCA 
 8. Johansen e VECM são tratados como candidatos, não como obrigação. O modelo base permanece VAR em transformações estacionárias quando há mistura I(0)/I(1).
 9. Forecasts de 12 meses são gerados com intervalos analíticos de 68% e 95%.
 10. Backtest expanding-window compara VAR contra random walk, AR(1), média móvel de 12 meses e sazonal ingênuo.
+11. A auditoria econométrica testa robustez com `maxlags=12`, dummies sazonais, VARs menores por bloco e transformações candidatas.
+12. Uma recomendação operacional escolhe o melhor modelo por variável/horizonte com base no RMSE fora da amostra, preservando o VAR base quando ele continua competitivo.
 
 As funções impulso-resposta exibidas no dashboard são reduzidas. Elas não constituem identificação causal estrutural.
 
@@ -78,6 +80,7 @@ python -m macro_credit_forecast_bcb.pipeline.refresh --start 2011-03-01 --skip-f
 python -m macro_credit_forecast_bcb.pipeline.refresh --allow-quality-warnings
 python -m macro_credit_forecast_bcb.pipeline.forecast --horizon 12
 python -m macro_credit_forecast_bcb.pipeline.backtest --initial-window 72
+python -m macro_credit_forecast_bcb.pipeline.audit --skip-robustness-backtest
 ```
 
 ## Outputs
@@ -99,6 +102,10 @@ python -m macro_credit_forecast_bcb.pipeline.backtest --initial-window 72
 | `outputs/econometric_audit_metrics.parquet` | MAE, RMSE, sMAPE, MASE, Theil U e ranking por horizonte. |
 | `outputs/interval_coverage.parquet` | Cobertura e largura média dos intervalos do VAR no backtest. |
 | `outputs/model_comparison_tests.parquet` | Testes Diebold-Mariano entre VAR e benchmarks. |
+| `outputs/model_recommendations.parquet` | Modelo recomendado por variável e horizonte. |
+| `outputs/specification_diagnostics.parquet` | Diagnósticos das especificações VAR alternativas. |
+| `outputs/robustness_backtest_records.parquet` | Previsões fora da amostra das especificações VAR alternativas. |
+| `outputs/transformation_candidates.parquet` | ADF/KPSS para transformações candidatas. |
 
 ## Dashboard
 
@@ -119,11 +126,12 @@ Se os artefatos ainda não existirem, o app mostra os comandos necessários para
 pytest
 ```
 
-Os testes cobrem parsing SGS, transformações, seleção de defasagens VAR e benchmarks.
+Os testes cobrem parsing SGS, transformações, seleção de defasagens VAR, benchmarks, auditoria econométrica, Diebold-Mariano, cobertura de intervalos, especificações alternativas e recomendações por horizonte.
 
 ## Limitações conhecidas
 
 - A amostra de crédito é curta para VARs muito grandes; por isso a defasagem padrão é conservadora.
+- A recomendação por variável/horizonte é uma regra de backtest, não uma prova causal ou uma troca automática do modelo campeão.
 - O Focus público não cobre spread, concessões ou inadimplência como indicadores padrão comparáveis; essas séries usam benchmarks estatísticos.
 - Intervalos usam a rotina analítica do `statsmodels`; bootstrap residual com muitas simulações é um aprimoramento natural.
 - IRFs são reduzidas e não identificam choques estruturais de política monetária.

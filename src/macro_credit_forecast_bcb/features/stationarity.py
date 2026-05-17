@@ -46,25 +46,26 @@ def choose_order(adf_pvalue: float, kpss_pvalue: float, variable: str) -> tuple[
     return "ambiguous", "ADF/KPSS evidence is mixed; inspect economics, charts and diagnostics."
 
 
+def stationarity_check(series: pd.Series, variable: str) -> dict[str, object]:
+    values = series.dropna()
+    adf_pvalue, adf_error = _safe_adf(values)
+    kpss_pvalue, kpss_error = _safe_kpss(values)
+    order, justification = choose_order(adf_pvalue, kpss_pvalue, variable)
+    return {
+        "series": variable,
+        "transformation": variable,
+        "adf_pvalue": adf_pvalue,
+        "kpss_pvalue": kpss_pvalue,
+        "chosen_order": order,
+        "justification": justification,
+        "adf_error": adf_error,
+        "kpss_error": kpss_error,
+        "nobs": int(values.shape[0]),
+    }
+
+
 def run_stationarity_tests(frame: pd.DataFrame) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     for column in frame.columns:
-        series = frame[column].dropna()
-        adf_pvalue, adf_error = _safe_adf(series)
-        kpss_pvalue, kpss_error = _safe_kpss(series)
-        order, justification = choose_order(adf_pvalue, kpss_pvalue, column)
-        rows.append(
-            {
-                "series": column,
-                "transformation": column,
-                "adf_pvalue": adf_pvalue,
-                "kpss_pvalue": kpss_pvalue,
-                "chosen_order": order,
-                "justification": justification,
-                "adf_error": adf_error,
-                "kpss_error": kpss_error,
-                "nobs": int(series.shape[0]),
-            }
-        )
+        rows.append(stationarity_check(frame[column], column))
     return pd.DataFrame(rows)
-

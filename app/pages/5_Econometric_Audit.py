@@ -34,6 +34,9 @@ coverage = load_audit_table("interval_coverage.parquet")
 dm_tests = load_audit_table("model_comparison_tests.parquet")
 residuals = load_audit_table("residual_equation_diagnostics.parquet")
 transformations = load_audit_table("transformation_audit.parquet")
+recommendations = load_audit_table("model_recommendations.parquet")
+specifications = load_audit_table("specification_diagnostics.parquet")
+transformation_candidates = load_audit_table("transformation_candidates.parquet")
 
 if not summary or scorecard.empty:
     missing_artifacts_message()
@@ -58,6 +61,26 @@ st.dataframe(
         "recommendation": st.column_config.TextColumn("Recomendação"),
     },
 )
+
+st.subheader("Recomendação operacional por horizonte")
+if recommendations.empty:
+    st.info("Recomendações ainda não foram geradas. Reexecute o pipeline de auditoria.")
+else:
+    rec_display = recommendations.copy()
+    rec_display["variable"] = rec_display["variable"].map(label)
+    st.dataframe(
+        rec_display.sort_values(["variable", "horizon"]),
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "horizon": st.column_config.NumberColumn("Horizonte", format="%d"),
+            "rmse": st.column_config.NumberColumn("RMSE recomendado", format="%.4f"),
+            "mae": st.column_config.NumberColumn("MAE recomendado", format="%.4f"),
+            "base_var_rmse": st.column_config.NumberColumn("RMSE VAR base", format="%.4f"),
+            "best_benchmark_rmse": st.column_config.NumberColumn("RMSE melhor benchmark", format="%.4f"),
+            "rmse_gain_vs_base_var": st.column_config.NumberColumn("Ganho vs VAR base", format="%.1%"),
+        },
+    )
 
 st.subheader("Ranking de acurácia")
 if audit_metrics.empty:
@@ -107,6 +130,42 @@ else:
         column_config={
             "dm_stat": st.column_config.NumberColumn("DM stat", format="%.3f"),
             "pvalue": st.column_config.NumberColumn("p-value", format="%.4f"),
+        },
+    )
+
+st.subheader("Robustez de especificações")
+if specifications.empty:
+    st.info("Diagnósticos das especificações alternativas indisponíveis.")
+else:
+    st.dataframe(
+        specifications,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "selected_lag": st.column_config.NumberColumn("Lag", format="%d"),
+            "maxlags": st.column_config.NumberColumn("Maxlags", format="%d"),
+            "aic": st.column_config.NumberColumn("AIC", format="%.3f"),
+            "bic": st.column_config.NumberColumn("BIC", format="%.3f"),
+            "roots_abs_min": st.column_config.NumberColumn("Menor |raiz|", format="%.3f"),
+        },
+    )
+
+st.subheader("Transformações candidatas")
+if transformation_candidates.empty:
+    st.info("Candidatos de transformação indisponíveis.")
+else:
+    candidates = transformation_candidates.copy()
+    for column in ["adf_pvalue", "kpss_pvalue"]:
+        if column in candidates:
+            candidates[column] = pd.to_numeric(candidates[column], errors="coerce")
+    st.dataframe(
+        candidates.sort_values(["model_variable", "current_model", "candidate"], ascending=[True, False, True]),
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "current_model": st.column_config.CheckboxColumn("Atual"),
+            "adf_pvalue": st.column_config.NumberColumn("ADF p-value", format="%.4f"),
+            "kpss_pvalue": st.column_config.NumberColumn("KPSS p-value", format="%.4f"),
         },
     )
 

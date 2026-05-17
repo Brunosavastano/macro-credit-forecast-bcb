@@ -9,6 +9,8 @@ from scipy import stats
 from statsmodels.stats.diagnostic import acorr_ljungbox, het_arch
 from statsmodels.tsa.vector_ar.var_model import VARResults
 
+from macro_credit_forecast_bcb.models.robustness import select_recommended_models
+
 
 def status_rank(status: str) -> int:
     return {"pass": 0, "warning": 1, "fail": 2}.get(status, 1)
@@ -402,11 +404,18 @@ def run_econometric_audit(
     stationarity: pd.DataFrame | None = None,
     model_summary: dict[str, Any] | None = None,
     residual_diagnostics: pd.DataFrame | None = None,
+    robustness_records: pd.DataFrame | None = None,
+    specification_diagnostics: pd.DataFrame | None = None,
+    transformation_candidates: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
     del forecast, backtest_metrics
-    audit_metrics = enhanced_accuracy_metrics(backtest_records)
+    records_for_ranking = backtest_records
+    if robustness_records is not None and not robustness_records.empty:
+        records_for_ranking = pd.concat([backtest_records, robustness_records], ignore_index=True)
+    audit_metrics = enhanced_accuracy_metrics(records_for_ranking)
     coverage = interval_coverage(backtest_records)
     dm_tests = run_forecast_accuracy_tests(backtest_records)
+    recommendations = select_recommended_models(audit_metrics, dm_tests)
     transformation_audit = run_transformation_audit(raw, history) if raw is not None else pd.DataFrame()
     scorecard = build_model_scorecard(
         data_quality=data_quality if data_quality is not None else pd.DataFrame(),
@@ -424,10 +433,20 @@ def run_econometric_audit(
         "audit_metrics": audit_metrics,
         "interval_coverage": coverage,
         "model_comparison_tests": dm_tests,
+        "model_recommendations": recommendations,
         "transformation_audit": transformation_audit,
+        "transformation_candidates": transformation_candidates
+        if transformation_candidates is not None
+        else pd.DataFrame(),
+        "specification_diagnostics": specification_diagnostics
+        if specification_diagnostics is not None
+        else pd.DataFrame(),
         "summary": {
             "overall_status": overall_status,
             "dimensions": scorecard.to_dict(orient="records"),
+            "recommended_model_counts": recommendations["recommended_model"].value_counts().to_dict()
+            if not recommendations.empty
+            else {},
             "generated_at": pd.Timestamp.utcnow().isoformat(),
         },
     }
